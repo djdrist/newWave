@@ -1,27 +1,32 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Button, Progress, Alert } from 'reactstrap';
-import { getSeats, loadSeatsRequest, getRequests } from '../../../redux/seatsRedux';
+import io from 'socket.io-client';
+import { getSeats, loadSeatsRequest, loadSeats, getRequests } from '../../../redux/seatsRedux';
+import { SOCKET_URL } from '../../../config';
 import './SeatChooser.scss';
 
 const SeatChooser = ({ chosenDay, chosenSeat, updateSeat }) => {
 	const dispatch = useDispatch();
 	const seats = useSelector(getSeats);
+	const seatsTotal = 50;
 	const requests = useSelector(getRequests);
+	const [socket, setSocket] = useState();
 
 	useEffect(() => {
+		const socket = io(SOCKET_URL);
+		setSocket(socket);
+		socket.on('seatsUpdated', (seats) => {
+			dispatch(loadSeats(seats));
+		});
 		dispatch(loadSeatsRequest());
-		const refresh = setInterval(() => {
-			dispatch(loadSeatsRequest());
-		}, 1000 * 120);
-		return () => {
-			clearInterval(refresh);
-		};
 	}, [dispatch]);
 
 	const isTaken = (seatId) => {
 		return seats.some((item) => item.seat === seatId && item.day === chosenDay);
 	};
+
+	const seatsTaken = seats.filter((item) => item.day === chosenDay).length;
 
 	const prepareSeat = (seatId) => {
 		if (seatId === chosenSeat)
@@ -73,7 +78,14 @@ const SeatChooser = ({ chosenDay, chosenSeat, updateSeat }) => {
 				/>{' '}
 				– it's empty
 			</small>
-			{requests['LOAD_SEATS'] && requests['LOAD_SEATS'].success && <div className='seats'>{[...Array(50)].map((x, i) => prepareSeat(i + 1))}</div>}
+			{requests['LOAD_SEATS'] && requests['LOAD_SEATS'].success && (
+				<div className='seats'>
+					{[...Array(seatsTotal)].map((x, i) => prepareSeat(i + 1))}
+					<p>
+						Free seats: {seatsTotal - seatsTaken}/{seatsTotal}
+					</p>
+				</div>
+			)}
 			{requests['LOAD_SEATS'] && requests['LOAD_SEATS'].pending && (
 				<Progress
 					animated

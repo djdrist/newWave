@@ -14,9 +14,9 @@ router.route('/seats/:id').get((req, res) => {
 router.route('/seats').post((req, res) => {
 	const { day, seat, client, email } = req.body;
 	const isSeatFree = db.seats.filter((r) => r.day == day && r.seat == seat).length === 0 ? true : false;
-	console.log(db.seats);
 	if (isSeatFree) {
 		db.seats = [...db.seats, { id: uuidv4(), day, seat, client, email }];
+		req.io.emit('seatsUpdated', db.seats);
 		res.json({ message: 'OK' });
 	} else {
 		res.status(400).json({ message: 'The slot is already taken...' });
