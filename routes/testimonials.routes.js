@@ -1,36 +1,17 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../db');
-const { v4: uuidv4 } = require('uuid');
+const TestimonialController = require('../controllers/testimonials.controller');
 
-router.route('/testimonials').get((req, res) => {
-	res.json(db.testimonials);
-});
+router.get('/testimonials', TestimonialController.getAll);
 
-router.route('/testimonials/random').get((req, res) => {
-	const index = Math.floor(Math.random() * db.testimonials.length);
-	res.json(db.testimonials[index]);
-});
+router.get('/testimonials/random', TestimonialController.getRandom);
 
-router.route('/testimonials/:id').get((req, res) => {
-	res.json(db.testimonials.filter((e) => e.id === req.params.id));
-});
+router.get('/testimonials/:id', TestimonialController.getById);
 
-router.route('/testimonials').post((req, res) => {
-	const { author, text } = req.body;
-	db.testimonials = [...db.testimonials, { id: uuidv4(), author, text }];
-	res.json({ message: 'OK' });
-});
+router.post('/testimonials', TestimonialController.add);
 
-router.route('/testimonials/:id').put((req, res) => {
-	const { author, text } = req.body;
-	db.testimonials = db.testimonials.map((e) => (e.id === req.params.id ? { ...e, author, text } : e));
-	res.json({ message: 'OK' });
-});
+router.put('/testimonials/:id', TestimonialController.editById);
 
-router.route('/testimonials/:id').delete((req, res) => {
-	db.testimonials = db.testimonials.filter((e) => e.id !== req.params.id);
-	res.json({ message: 'OK' });
-});
+router.delete('/testimonials/:id', TestimonialController.deleteById);
 
 module.exports = router;

@@ -1,31 +1,15 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../db');
-const { v4: uuidv4 } = require('uuid');
+const ConcertController = require('../controllers/concerts.controller');
 
-router.route('/concerts').get((req, res) => {
-	res.json(db.concerts);
-});
+router.get('/concerts', ConcertController.getAll);
 
-router.route('/concerts/:id').get((req, res) => {
-	res.json(db.concerts.filter((e) => e.id === req.params.id));
-});
+router.get('/concerts/:id', ConcertController.getById);
 
-router.route('/concerts').post((req, res) => {
-	const { performer, genre, price, date, image } = req.body;
-	db.concerts = [...db.concerts, { id: uuidv4(), performer, genre, price, date, image }];
-	res.json({ message: 'OK' });
-});
+router.post('/concerts', ConcertController.add);
 
-router.route('/concerts/:id').put((req, res) => {
-	const { performer, genre, price, date, image } = req.body;
-	db.concerts = db.concerts.map((e) => (e.id === req.params.id ? { ...e, performer, genre, price, date, image } : e));
-	res.json({ message: 'OK' });
-});
+router.put('/concerts/:id', ConcertController.editById);
 
-router.route('/concerts/:id').delete((req, res) => {
-	db.concerts = db.concerts.filter((e) => e.id !== req.params.id);
-	res.json({ message: 'OK' });
-});
+router.delete('/concerts/:id', ConcertController.deleteById);
 
 module.exports = router;

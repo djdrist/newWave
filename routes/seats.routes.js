@@ -1,37 +1,15 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../db');
-const { v4: uuidv4 } = require('uuid');
+const SeatController = require('../controllers/seats.controller');
 
-router.route('/seats').get((req, res) => {
-	res.json(db.seats);
-});
+router.get('/seats', SeatController.getAll);
 
-router.route('/seats/:id').get((req, res) => {
-	res.json(db.seats.filter((e) => e.id === req.params.id));
-});
+router.get('/seats/:id', SeatController.getById);
 
-router.route('/seats').post((req, res) => {
-	const { day, seat, client, email } = req.body;
-	const isSeatFree = db.seats.filter((r) => r.day == day && r.seat == seat).length === 0 ? true : false;
-	if (isSeatFree) {
-		db.seats = [...db.seats, { id: uuidv4(), day, seat, client, email }];
-		req.io.emit('seatsUpdated', db.seats);
-		res.json({ message: 'OK' });
-	} else {
-		res.status(400).json({ message: 'The slot is already taken...' });
-	}
-});
+router.post('/seats', SeatController.add);
 
-router.route('/seats/:id').put((req, res) => {
-	const { day, seat, client, email } = req.body;
-	db.seats = db.seats.map((e) => (e.id === req.params.id ? { ...e, day, seat, client, email } : e));
-	res.json({ message: 'OK' });
-});
+router.put('/seats/:id', SeatController.editById);
 
-router.route('/seats/:id').delete((req, res) => {
-	db.seats = db.seats.filter((e) => e.id !== req.params.id);
-	res.json({ message: 'OK' });
-});
+router.delete('/seats/:id', SeatController.deleteById);
 
 module.exports = router;
