@@ -3,6 +3,7 @@ const cors = require('cors');
 const path = require('path');
 const socket = require('socket.io');
 const mongoose = require('mongoose');
+const helmet = require('helmet');
 
 const concertsRoutes = require('./routes/concerts.routes');
 const seatsRoutes = require('./routes/seats.routes');
@@ -20,6 +21,7 @@ io.on('connection', (socket) => {
 	console.log('New socket!');
 });
 
+app.use(helmet());
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use(
@@ -43,8 +45,12 @@ app.get('*', (req, res) => {
 	res.sendFile(path.join(__dirname, '/client/build/index.html'));
 });
 
-// mongoose.connect('mongodb+srv://drist:mongodrist@cluster0.k5pygoz.mongodb.net/NewWaveDB?retryWrites=true&w=majority', { useNewUrlParser: true });
-mongoose.connect('mongodb://localhost:27017/NewWaveDB', { useNewUrlParser: true });
+const dbURI =
+	process.env.NODE_ENV === 'production'
+		? `mongodb+srv://drist:${process.env.DB_PASS}cluster0.k5pygoz.mongodb.net/NewWaveDB?retryWrites=true&w=majority`
+		: 'mongodb://localhost:27017/NewWaveDB';
+
+mongoose.connect(dbURI, { useNewUrlParser: true });
 const db = mongoose.connection;
 
 db.once('open', () => {
